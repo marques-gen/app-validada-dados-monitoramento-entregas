@@ -5,6 +5,7 @@ from pandera import Column, DataFrameSchema
 from pandera.errors import SchemaErrors
 import re
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 # Regex para validar nome do arquivo: base_monitoramento_entregas_YYYYMM.csv
 NOME_VALIDO_REGEX = r"^base_monitoramento_entregas_(\d{6})\.csv$"
@@ -62,7 +63,7 @@ if uploaded_files:
             validated_df = schema.validate(df, lazy=True)
 
             st.success("✅ Arquivo válido")
-            st.dataframe(validated_df.head())
+            #st.dataframe(validated_df.head())
             arquivos_validos[file.name] = validated_df
 
         except SchemaErrors as e:
@@ -91,9 +92,16 @@ if uploaded_files:
 
     # Botão para salvar arquivos válidos
     if arquivos_validos:
+        st.divider()
+        st.markdown("### ✅ Arquivos Válidos - Prévia")
+        for nome_arquivo, df in arquivos_validos.items():
+            with st.expander(f"📁 {nome_arquivo}", expanded=False):
+                st.dataframe(df.head())
+
         if st.button("💾 Salvar arquivos válidos como Parquet"):
             for nome, df in arquivos_validos.items():
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                #timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                timestamp = datetime.now(ZoneInfo("America/Sao_Paulo")).strftime("%Y%m%d_%H%M%S")
                 nome_parquet = nome.replace(".csv", f"_{timestamp}.parquet")
                 df.to_parquet(nome_parquet, index=False)
 
