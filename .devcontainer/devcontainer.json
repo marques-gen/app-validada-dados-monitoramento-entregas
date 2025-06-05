@@ -2,8 +2,8 @@
   "name": "Validador de Dados (Streamlit)",
 
   "dockerComposeFile": [
-    "../docker-compose.yml",
-    "docker-compose.yml"
+    "../docker-compose.yml"
+    
   ],
 
   "service": "validador",

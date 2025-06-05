@@ -6,6 +6,16 @@ from pandera.errors import SchemaErrors
 import re
 from datetime import datetime
 from zoneinfo import ZoneInfo
+import os
+from pathlib import Path
+
+
+# caminho_saida=Path(r"C:\data\landing-zone\monitoramento-entregas")
+# caminho_saida=Path("/mnt/u/monitoramento-entregas")
+caminho_saida=Path(r"\\desktop-m5temq4\data\landing-zone")
+
+# Garante que o diretório existe (cria se necessário)
+caminho_saida.mkdir(parents=True,exist_ok=True)
 
 # Regex para validar nome do arquivo: base_monitoramento_entregas_YYYYMM.csv
 NOME_VALIDO_REGEX = r"^base_monitoramento_entregas_(\d{6})\.csv$"
@@ -103,7 +113,8 @@ if uploaded_files:
                 #timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 timestamp = datetime.now(ZoneInfo("America/Sao_Paulo")).strftime("%Y%m%d_%H%M%S")
                 nome_parquet = nome.replace(".csv", f"_{timestamp}.parquet")
-                df.to_parquet(nome_parquet, index=False)
+                caminho_completo=caminho_saida / nome_parquet
+                df.to_parquet(caminho_completo, index=False)
 
             st.success("🎉 Arquivos salvos com sucesso!")
 
