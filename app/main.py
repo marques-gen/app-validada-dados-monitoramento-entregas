@@ -8,7 +8,13 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 import os
 from pathlib import Path
+import io
+import zipfile
+#from utils.logs import gerar_log_erros
 
+# Gera timestamp uma vez por sessão
+if "timestamp_exportacao" not in st.session_state:
+    st.session_state.timestamp_exportacao = datetime.now(ZoneInfo("America/Sao_Paulo")).strftime("%Y%m%d_%H%M%S")
 
 # caminho_saida=Path(r"C:\data\landing-zone\monitoramento-entregas")
 # caminho_saida=Path("/mnt/u/monitoramento-entregas")
@@ -107,21 +113,43 @@ if uploaded_files:
         for nome_arquivo, df in arquivos_validos.items():
             with st.expander(f"📁 {nome_arquivo}", expanded=False):
                 st.dataframe(df.head())
+        
+        st.divider()
+        st.markdown("### 📥 Download dos Arquivos Válidos (ZIP contendo Parquets)")
 
-        if st.button("💾 Salvar arquivos válidos como Parquet"):
-            for nome, df in arquivos_validos.items():
-                #timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                timestamp = datetime.now(ZoneInfo("America/Sao_Paulo")).strftime("%Y%m%d_%H%M%S")
-                nome_parquet = nome.replace(".csv", f"_{timestamp}.parquet")
-                caminho_completo=caminho_saida / nome_parquet
-                df.to_parquet(caminho_completo, index=False)
+        # Cria um buffer para armazenar o zip em memória
+        zip_buffer = io.BytesIO()
 
-            st.success("🎉 Arquivos salvos com sucesso!")
+        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+            for nome_arquivo, df in arquivos_validos.items():
+                timestamp = st.session_state.timestamp_exportacao #datetime.now(ZoneInfo("America/Sao_Paulo")).strftime("%Y%m%d_%H%M%S")
+                nome_parquet = nome_arquivo.replace(".csv", f"_{timestamp}.parquet")
 
-            # Incrementa a chave do uploader para forçar a limpeza
-            st.session_state.uploader_key += 1
+                parquet_buffer = io.BytesIO()
+                df.to_parquet(parquet_buffer, index=False)
+                parquet_buffer.seek(0)
 
-            # Reinicia a aplicação
-            st.rerun()
+                # Adiciona o arquivo Parquet ao ZIP
+                zip_file.writestr(nome_parquet, parquet_buffer.read())
 
+        # Prepara o buffer do ZIP para download
+    zip_buffer.seek(0)
+
+    st.download_button(
+        label="⬇️ Baixar Todos os Arquivos Válidos (ZIP)",
+        data=zip_buffer,
+        file_name="arquivos_validos.zip",
+        mime="application/zip"
+        #disabled=st.session_state.download_disabled
+        
+    )
+        #st.success("🎉 Arquivos salvos com sucesso!")
+
+    # Incrementa a chave do uploader para forçar a limpeza
+    #st.session_state.uploader_key += 1
+
+    # Reinicia a aplicação
+    #st.rerun()
+    # Botão para indicar que o download foi concluído
+    
 
