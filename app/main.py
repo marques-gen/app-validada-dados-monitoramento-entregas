@@ -134,15 +134,17 @@ if uploaded_files:
 
         # Prepara o buffer do ZIP para download
     zip_buffer.seek(0)
-
-    st.download_button(
-        label="⬇️ Baixar Todos os Arquivos Válidos (ZIP)",
-        data=zip_buffer,
-        file_name="arquivos_validos.zip",
-        mime="application/zip"
-        #disabled=st.session_state.download_disabled
-        
-    )
+    if len(arquivos_validos)==len(uploaded_files):
+        st.download_button(
+            label="⬇️ Baixar Todos os Arquivos Válidos (ZIP)",
+            data=zip_buffer,
+            file_name="arquivos_validos.zip",
+            mime="application/zip"
+            #disabled=st.session_state.download_disabled
+            
+        )
+    else:
+        st.warning("⚠️ O download só estará disponível se todos os arquivos enviados forem válidos.")
         #st.success("🎉 Arquivos salvos com sucesso!")
 
     # Incrementa a chave do uploader para forçar a limpeza
