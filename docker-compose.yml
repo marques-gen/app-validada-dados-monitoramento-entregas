@@ -1,6 +1,7 @@
 version: '3.9'
 services:
   # Update this to the name of the service you want to work with in your docker-compose.yml file
+
   validador:
     # Uncomment if you want to override the service's Dockerfile to one in the .devcontainer 
     # folder. Note that the path of the Dockerfile and context is relative to the *primary* 
@@ -18,7 +19,9 @@ services:
     ports:
       - "8501:8501"
     restart: always  # Reinicia o container automaticamente ao reboot do Docker
-
+    environment:
+      - PYTHONPATH=/workspaces/app-validadados-monitoramento-entregas
+    
     # Uncomment the next four lines if you will use a ptrace-based debugger like C++, Go, and Rust.
     # cap_add:
     #   - SYS_PTRACE
@@ -28,7 +31,13 @@ services:
 
     # Overrides default command so things don't shut down after the process ends.
    
-    command: streamlit run app/main.py --server.port=8501 --server.address=0.0.0.0
+    command: streamlit run app/main2.py --server.port=8501 --server.address=0.0.0.0
     working_dir: /app  # Garante que o comando será executado no diretório certo
     # command: sleep infinity
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    external: true
  
