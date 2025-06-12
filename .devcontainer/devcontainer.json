@@ -26,7 +26,7 @@
     }
   },
 
-  "forwardPorts": [8501],
+  "forwardPorts": [8501, 8443],
   "postCreateCommand": "pip install -r requirements.txt"
  
 }
