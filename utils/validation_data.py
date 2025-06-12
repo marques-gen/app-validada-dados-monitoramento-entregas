@@ -2,6 +2,8 @@ import re
 from datetime import datetime
 import pandas as pd
 import pandera as pa
+from pandera import Column, DataFrameSchema
+from pandera.errors import SchemaErrors
 from pandera import Column, DataFrameSchema, errors
 
 # Regex de nome
