@@ -1,10 +1,7 @@
 
 from sqlalchemy import create_engine
-from app.config import get_env_var
+from config import get_env_var
 
-# Caminho absoluto até a raiz do projeto (onde está o .env)
-#env_path = Path(__file__).resolve().parents[1] / ".env"
-#load_dotenv(dotenv_path=env_path)
 
 def get_engine():
     user = get_env_var("POSTGRES_USER")
