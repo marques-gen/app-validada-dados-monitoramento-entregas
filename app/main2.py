@@ -5,9 +5,9 @@ from pandera import Column, DataFrameSchema
 from pandera.errors import SchemaErrors
 from datetime import datetime
 from zoneinfo import ZoneInfo
-from app.utils.validation_data import nome_valido, validar_nome_data, validar_dataframe
-from app.utils.database import get_engine
-from app.utils.export_data import exportar_para_zip
+from utils.validation_data import nome_valido, validar_nome_data, validar_dataframe
+from utils.database import get_engine
+from utils.export_data import exportar_para_zip
 
 # Setup inicial
 st.set_page_config("Validador CSV", layout="wide")
