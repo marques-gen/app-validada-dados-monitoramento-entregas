@@ -2,8 +2,8 @@
   "name": "Validador de Dados (Streamlit)",
 
   "dockerComposeFile": [
-    "../docker-compose.yml",
-    "docker-compose.yml"
+    "../docker-compose.yml"
+    
   ],
 
   "service": "validador",
@@ -26,6 +26,7 @@
     }
   },
 
-  "forwardPorts": [8501],
+  "forwardPorts": [8501, 8443],
   "postCreateCommand": "pip install -r requirements.txt"
+ 
 }

@@ -10,3 +10,4 @@ __pycache__/
 *.sqlite
 .vscode/
 .devcontainer/.env
+*.parquet
