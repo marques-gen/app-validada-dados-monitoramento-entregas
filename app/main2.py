@@ -8,6 +8,11 @@ from zoneinfo import ZoneInfo
 from utils.validation_data import nome_valido, validar_nome_data, validar_dataframe
 from utils.database import get_engine
 from utils.export_data import exportar_para_zip
+import sys
+import os
+
+sys.path.append(os.path.dirname(__file__))
+
 
 # Setup inicial
 st.set_page_config("Validador CSV", layout="wide")
