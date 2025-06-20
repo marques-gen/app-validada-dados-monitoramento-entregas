@@ -27,5 +27,5 @@ ENV PYTHONPATH=/workspaces/app-validadados-monitoramento-entregas
 
 # Comando default
 CMD ["streamlit", "run", "app/main2.py", "--server.port=8501", "--server.address=0.0.0.0"]
-ENV PYTHONPATH=/app-validadados-monitoramento-entregas
+#ENV PYTHONPATH=/app-validadados-monitoramento-entregas
 
