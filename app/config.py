@@ -5,6 +5,8 @@ import os
 # Carrega .env da raiz do projeto, mesmo se rodar a partir de app/
 env_path = Path(__file__).resolve().parents[1] / '.env'
 load_dotenv(dotenv_path=env_path)
+print("POSTGRES_USER:", os.getenv("POSTGRES_USER"))
+
 
 def get_env_var(var_name: str, required: bool = True) -> str:
     value = os.getenv(var_name)
