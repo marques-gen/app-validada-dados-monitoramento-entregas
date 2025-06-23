@@ -8,6 +8,8 @@ from zoneinfo import ZoneInfo
 from utils.validation_data import nome_valido, validar_nome_data, validar_dataframe
 from utils.database import get_engine
 from utils.export_data import exportar_para_zip
+from utils.converter import dataframes_para_json_pedidos
+import requests
 import sys
 import os
 
@@ -82,7 +84,7 @@ if uploaded_files:
     if len(arquivos_validos) == len(uploaded_files):
         st.success("🎉 Todos os arquivos são válidos!")
 
-        acao = st.radio("Deseja:", ["⬇️ Fazer download dos Parquets", "📥 Inserir no PostgreSQL"])
+        acao = st.radio("Deseja:", ["⬇️ Fazer download dos Parquets", "📥 Inserir no PostgreSQL","📤 Enviar para API"])
 
         if acao == "⬇️ Fazer download dos Parquets":
             zip_buffer = exportar_para_zip(arquivos_validos, st.session_state.timestamp_exportacao)
@@ -113,6 +115,35 @@ if uploaded_files:
                     st.rerun()
 
             st.button("📥 Inserir arquivos no banco", on_click=inserir_dados)
+
+        elif acao == "📤 Enviar para API":
+
+            def enviar_para_api():
+                url = "http://api-fastapi-template:8000/pedidos/"
+                sucesso_total = True
+
+                # Converte para o formato JSON esperado pela API
+                json_arquivos = dataframes_para_json_pedidos(arquivos_validos)
+
+                for nome_arquivo, registros_json in json_arquivos.items():
+                    try:
+                        response = requests.post(url, json=registros_json)
+
+                        if response.status_code == 200:
+                            st.success(f"✅ `{nome_arquivo}` enviado com sucesso.")
+                        else:
+                            st.error(f"❌ Falha ao enviar `{nome_arquivo}`. Código: {response.status_code} | Erro: {response.text}")
+                            sucesso_total = False
+
+                    except Exception as e:
+                        st.error(f"❌ Erro ao enviar `{nome_arquivo}`: {e}")
+                        sucesso_total = False
+
+                if sucesso_total:
+                    st.session_state["uploader_key"] += 1
+                    st.rerun()                    
+            st.button("📤 Enviar arquivos para API", on_click=enviar_para_api)
+
 
     else:
         st.warning("⚠️ O download ou carga só serão permitidos se todos os arquivos forem válidos.")
