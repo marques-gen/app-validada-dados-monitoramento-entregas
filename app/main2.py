@@ -119,7 +119,7 @@ if uploaded_files:
         elif acao == "📤 Enviar para API":
 
             def enviar_para_api():
-                url = "http://api-fastapi-template:8000/pedidos/"
+                url = "http://api-fastapi-entregas:8000/pedidos/"
                 sucesso_total = True
 
                 # Converte para o formato JSON esperado pela API
