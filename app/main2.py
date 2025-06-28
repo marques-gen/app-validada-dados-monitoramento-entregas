@@ -5,10 +5,10 @@ from pandera import Column, DataFrameSchema
 from pandera.errors import SchemaErrors
 from datetime import datetime
 from zoneinfo import ZoneInfo
-from utils.validation_data import nome_valido, validar_nome_data, validar_dataframe
-from utils.database import get_engine
-from utils.export_data import exportar_para_zip
-from utils.converter import dataframes_para_json_pedidos
+from utils.data_validation import nome_valido, validar_nome_data, validar_dataframe
+from config.database_connection import get_engine
+from utils.dataframes_to_zip import exportar_para_zip
+from utils.dataframes_to_dict_json import dataframes_para_json_pedidos
 import requests
 import sys
 import os
@@ -119,7 +119,8 @@ if uploaded_files:
         elif acao == "📤 Enviar para API":
 
             def enviar_para_api():
-                url = "http://api-fastapi-entregas:8000/pedidos/"
+                #url = "http://api-fastapi-entregas:8000/pedidos/"
+                url = "http://localhost:8000/pedidos/"  # URL da API FastAPI
                 sucesso_total = True
 
                 # Converte para o formato JSON esperado pela API
