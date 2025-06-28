@@ -1,6 +1,6 @@
 
 from sqlalchemy import create_engine
-from config import get_env_var
+from config.env_loader import get_env_var
 
 
 def get_engine():
