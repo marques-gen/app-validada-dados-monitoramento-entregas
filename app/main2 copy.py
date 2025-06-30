@@ -5,10 +5,10 @@ from pandera import Column, DataFrameSchema
 from pandera.errors import SchemaErrors
 from datetime import datetime
 from zoneinfo import ZoneInfo
-from utils.files_validation import validar_nome, validar_nome_data, validar_dataframe ,validar_arquivos_enviados
+from utils.dataframes_validation import nome_valido, validar_nome_data, validar_dataframe
 from config.database_connection import get_engine
 from utils.dataframes_to_zip import exportar_para_zip
-from utils.dataframes_to_dict_json import dataframes_to_dict_json
+from utils.dataframes_to_dict_json import dataframes_para_json_pedidos
 import requests
 import sys
 import os
@@ -33,25 +33,49 @@ uploaded_files = st.file_uploader(
     key=f"uploader_{st.session_state['uploader_key']}"
 )
 
-arquivos_validos, erros_por_arquivo = validar_arquivos_enviados(uploaded_files)
+arquivos_validos = {}
+erros_por_arquivo = {}
 
 if uploaded_files:
     for file in uploaded_files:
         st.divider()
         st.subheader(f"📄 Verificando: `{file.name}`")
-        if not validar_nome(file.name):
-            st.error(f"❌ Nome inválido: `{file.name}`. Deve seguir o padrão `base_monitoramento_entregas_YYYYMM.csv`.")
 
+        if not nome_valido(file.name):
+            st.error("❌ Nome inválido.")
+            continue
 
+        if not validar_nome_data(file.name):
+            st.error("❌ Data inválida no nome do arquivo.")
+            continue
 
-if erros_por_arquivo:
-    st.subheader("❌ Detalhamento dos erros por arquivo e coluna")
-    for nome_arquivo, erros_colunas in erros_por_arquivo.items():
-        st.markdown(f"### 📂 Arquivo: `{nome_arquivo}`")
-        for coluna, erros_df in erros_colunas.items():
-            if coluna == "__file__":
-                st.error(erros_df)
-            else:
+        try:
+            df = pd.read_csv(file, delimiter=";")
+            validado = validar_dataframe(df)
+            arquivos_validos[file.name] = validado
+            st.success("✅ Arquivo válido.")
+
+        except SchemaErrors as e:
+            st.error("❌ Erros de validação encontrados:")
+
+            failure_df = e.failure_cases
+            erros_por_coluna = {}
+
+            for col in failure_df["column"].unique():
+                col_erros = failure_df[failure_df["column"] == col][["index", "failure_case", "check"]]
+                erros_por_coluna[col] = col_erros.reset_index(drop=True)
+
+            erros_por_arquivo[file.name] = erros_por_coluna
+            
+        except Exception as e:
+            st.error(f"❌ Erro inesperado ao processar o arquivo: {e}")
+
+    # Exibe os erros organizados por arquivo e por coluna
+    if erros_por_arquivo:
+        st.subheader("❌ Detalhamento dos erros por arquivo e coluna")
+        for nome_arquivo, erros_colunas in erros_por_arquivo.items():
+            st.markdown(f"### 📂 Arquivo: `{nome_arquivo}`")
+            for coluna, erros_df in erros_colunas.items():
                 st.markdown(f"**🔸 Coluna com erro: `{coluna}`**")
                 st.dataframe(erros_df)
 
