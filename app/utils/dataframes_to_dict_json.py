@@ -1,50 +1,43 @@
 from typing import Dict, List
 import pandas as pd
 import numpy as np
+from schemas.data_contract_pedidos import SCHEMA_PEDIDOS, split_columns_by_type
 
-def dataframes_para_json_pedidos(dataframes: Dict[str, pd.DataFrame]) -> Dict[str, List[dict]]:
+def convert_dates(df: pd.DataFrame, columns: List[str]) -> pd.DataFrame:
+    for col in columns:
+        df[col] = pd.to_datetime(df[col], errors="coerce").dt.strftime('%Y-%m-%d')
+        df[col] = df[col].fillna("")
+    return df
+
+def convert_numerics(df: pd.DataFrame, columns: List[str]) -> pd.DataFrame:
+    for col in columns:
+        df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0).astype(int)
+    return df
+
+def convert_strings(df: pd.DataFrame, columns: List[str]) -> pd.DataFrame:
+    for col in columns:
+        df[col] = df[col].fillna("").astype(str)
+    return df
+
+def dataframes_to_dict_json(dataframes: Dict[str, pd.DataFrame]) -> Dict[str, List[dict]]:
     """
-    Converte múltiplos DataFrames em JSON formatado para envio à API de pedidos,
-    garantindo compatibilidade com o schema da API.
-    
-    Args:
-        dataframes (dict): {nome_arquivo: dataframe}
-
-    Returns:
-        dict: {nome_arquivo: lista_json}
+    Converte vários dataframes em listas de dicionários (JSON), prontos para envio
+    à API, garantindo compatibilidade com o schema.
     """
+    expected_columns = list(SCHEMA_PEDIDOS.columns.keys())
+    date_columns, numeric_columns, string_columns = split_columns_by_type(SCHEMA_PEDIDOS)
 
-    colunas_esperadas = [
-        "ID_Pedido", "Data_Pedido", "Prazo_Entrega_Dias", "Tempo_Transito_Dias",
-        "Data_Entrega", "Regiao", "Transportadora", "Status_Pedido", "Avaliacao_Cliente"
-    ]
+    result = {}
 
-    resultado = {}
-
-    for nome_arquivo, df in dataframes.items():
+    for file_name, df in dataframes.items():
         df_copy = df.copy()
+        df_copy = df_copy[expected_columns]
 
-        # Seleciona e reordena apenas as colunas esperadas
-        df_copy = df_copy[colunas_esperadas]
+        df_copy = convert_dates(df_copy, date_columns)
+        df_copy = convert_numerics(df_copy, numeric_columns)
+        df_copy = convert_strings(df_copy, string_columns)
 
-        # Converte colunas de data para string ISO (ou string vazia se inválida)
-        for col in ["Data_Pedido", "Data_Entrega"]:
-            df_copy[col] = pd.to_datetime(df_copy[col], errors="coerce").dt.strftime('%Y-%m-%d')
-            df_copy[col] = df_copy[col].fillna("")
-
-        # Converte numéricos para inteiro (com fallback 0)
-        for col in ["Prazo_Entrega_Dias", "Tempo_Transito_Dias", "Avaliacao_Cliente"]:
-            df_copy[col] = pd.to_numeric(df_copy[col], errors="coerce").fillna(0).astype(int)
-
-        # Garante que campos string não tenham NaN
-        for col in ["ID_Pedido", "Regiao", "Transportadora", "Status_Pedido"]:
-            df_copy[col] = df_copy[col].fillna("").astype(str)
-
-        # Remove qualquer valor que ainda possa causar erro no JSON
         df_copy.replace([np.nan, np.inf, -np.inf], "", inplace=True)
+        result[file_name] = df_copy.to_dict(orient="records")
 
-        # Converte para lista de dicionários JSON-compliant
-        resultado[nome_arquivo] = df_copy.to_dict(orient="records")
-
-    return resultado
-
+    return result
